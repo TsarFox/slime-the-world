@@ -19,10 +19,14 @@
 
 ;;;; This module contains non-game-specific bits and mode-changing logic.
 
-(global canvas-width 640)
-(global canvas-height 480)
+(var scale 2)
+(local canvas-width 640)
+(local canvas-height 480)
 
-(local canvas (love.graphics.newCanvas 640 480))
+(global screen-width (math.floor (/ canvas-width scale)))
+(global screen-height (math.floor (/ canvas-height scale)))
+
+(local canvas (love.graphics.newCanvas canvas-width canvas-height))
 (local font (love.graphics.newImageFont "art/font.png"
                                         (.. " !\"#$%&*()*+,-./"
                                             "0123456789"
@@ -31,7 +35,6 @@
                                             "abcdefghijklmnopqrstuvwxyz"
                                             "[\\]^_`{|}~")))
 
-(var scale 2)
 (var mode (require :sandbox))
 
 (fn set-mode [mode-name ...]
@@ -72,3 +75,6 @@
 
     :else
     (mode.keypressed key set-mode)))
+
+(fn love.keyreleased [key]
+  (mode.keyreleased key set-mode))
