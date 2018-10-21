@@ -1,9 +1,21 @@
-#+TITLE: README for swanky
+#+TITLE: README for slime-the-world
 #+AUTHOR: Jakob L. Kreuze
 #+EMAIL: zerodaysfordays@sdf.lonestar.org
 #+DATE:	<2018-10-19 Fri>
 
-* 1. Thanks!
+My entry to this year's [[https://events.tymoon.eu/4][Autumn Lisp Game Jam]]. The theme was slime, so it's a
+game about covering everything in sight with slime.
+
+* 1. Running the Game
+
+You will need the [[https://love2d.org/][LÖVE2D]] engine. Once you've obtained that, you can run the
+following from the root directory:
+
+#+BEGIN_SRC sh
+love .
+#+END_SRC
+
+* 2. Thanks!
 
 ** [[https://technomancy.us][Phil Hagelberg]]
 

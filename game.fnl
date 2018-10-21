@@ -1,19 +1,19 @@
 ;;;; Copyright (C) 2018 Jakob L. Kreuze, All Rights Reserved.
 ;;;;
-;;;; This file is part of swanky.
+;;;; This file is part of slime-the-world.
 ;;;;
-;;;; swanky is free software: you can redistribute it and/or modify it under the
-;;;; terms of the GNU General Public License as published by the Free Software
-;;;; Foundation, either version 3 of the License, or (at your option) any later
-;;;; version.
+;;;; slime-the-world is free software: you can redistribute it and/or modify it
+;;;; under the terms of the GNU General Public License as published by the Free
+;;;; Software Foundation, either version 3 of the License, or (at your option)
+;;;; any later version.
 ;;;;
-;;;; swanky is distributed in the hope that it will be useful, but WITHOUT ANY
-;;;; WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;;;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-;;;; details.
+;;;; slime-the-world is distributed in the hope that it will be useful, but
+;;;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;;;; or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;;;; more details.
 ;;;;
 ;;;; You should have received a copy of the GNU General Public License along
-;;;; with swanky. If not, see <http://www.gnu.org/licenses/>.
+;;;; with slime-the-world. If not, see <http://www.gnu.org/licenses/>.
 
 (local bump (require :lib.bump))
 (local lume (require :lib.lume))
@@ -201,7 +201,7 @@
     (when (>= (. camera :y-pos) max-y)
       (tset camera :y-pos max-y)))
 
-  ;; Update the swanky's velocities to reflect controls.
+  ;; Update the the player's velocities to reflect controls.
   (let [goal-x-vel (if (. player :action :right) (. player :goal-x-vel)
                        (. player :action :left) (- (. player :goal-x-vel))
                        0)]
