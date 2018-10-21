@@ -35,7 +35,7 @@
                                             "abcdefghijklmnopqrstuvwxyz"
                                             "[\\]^_`{|}~")))
 
-(var mode (require :sandbox))
+(var mode (require :game))
 
 (fn set-mode [mode-name ...]
   (set mode (require mode-name))
@@ -44,7 +44,8 @@
 
 (fn love.load []
   (: canvas :setFilter "nearest" "nearest")
-  (love.graphics.setFont font))
+  (love.graphics.setFont font)
+  (love.window.setMode canvas-width canvas-height {}))
 
 (fn love.draw []
   (love.graphics.setCanvas canvas)
@@ -78,3 +79,6 @@
 
 (fn love.keyreleased [key]
   (mode.keyreleased key set-mode))
+
+(fn love.gamepadpressed [_ button]
+  (print button))
