@@ -168,7 +168,10 @@
                  (. player :frame)
                  (. player :orientation)
                  x
-                 y)))
+                 y))
+  (love.graphics.print (string.format "%d/%d" (. world :surfaces-slimed)
+                                      (. world :surfaces-total))
+                       0 0))
 
 (fn update [dt set-mode]
   (local gravity 128)
@@ -227,20 +230,28 @@
         (let [tile (. collision :other)]
           ;; Touching top.
           (when (> 0 (. collision :normal :y))
-            (tset tile :slimed :top true)
-            (tset player :grounded true))
+            (tset player :grounded true)
+            (when (not (. tile :slimed :top))
+              (tset world :surfaces-slimed (+ 1 (. world :surfaces-slimed)))
+              (tset tile :slimed :top true)))
 
           ;; Touching bottom.
           (when (< 0 (. collision :normal :y))
-            (tset tile :slimed :bottom true))
-          
+            (when (not (. tile :slimed :bottom))
+              (tset world :surfaces-slimed (+ 1 (. world :surfaces-slimed)))
+              (tset tile :slimed :bottom true)))
+
           ;; Touching left.
           (when (> 0 (. collision :normal :x))
-            (tset tile :slimed :left true))
+            (when (not (. tile :slimed :left))
+              (tset world :surfaces-slimed (+ 1 (. world :surfaces-slimed)))
+              (tset tile :slimed :left true)))
 
           ;; Touching right.
           (when (< 0 (. collision :normal :x))
-            (tset tile :slimed :right true)))))))
+            (when (not (. tile :slimed :right))
+              (tset world :surfaces-slimed (+ 1 (. world :surfaces-slimed)))
+              (tset tile :slimed :right true))))))))
 
 
 (fn keypressed [key set-mode]
@@ -256,7 +267,7 @@
 (fn keyreleased [key set-mode]
   (when (= key "right")
     (tset player :action :right false))
-  
+
   (when (= key "left")
     (tset player :action :left false))
 
