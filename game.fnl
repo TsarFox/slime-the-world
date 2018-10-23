@@ -27,8 +27,8 @@
         :padding-x 8 :padding-y 10})
 
 (local player-animations
-       {:idle {:offset 0 :sustain false :frames 2}
-        :jump {:offset 2 :sustain true  :frames 4}})
+       {:idle {:offset 0 :frames 1}
+        :walk {:offset 1 :frames 4}})
 
 ;; Returns a new player object, placed at the world coordinates, (`x', `y').
 (fn make-player [x y]
@@ -47,6 +47,8 @@
    :orientation :right
    :animation :idle
    :frame 0
+   :frame-delay 4
+   :frame-timer 4
 
    :grounded false
 
@@ -157,8 +159,10 @@
                                       (: (. sheet :img) :getHeight))]
       (love.graphics.draw (. sheet :img) quad x y))))
 
+(var fade-in-alpha 1)
+
 (fn draw [message]
-  (love.graphics.clear 1 1 1)
+  (love.graphics.clear 1 1 1)  
   (draw-tiles (. world :tiles) (. camera :x-pos) (. camera :y-pos))
   (let [x (- (. player :x-pos) (. camera :x-pos))
         y (- (. player :y-pos) (. camera :y-pos))
@@ -171,8 +175,20 @@
                  y))
   (love.graphics.print (string.format "%d/%d" (. world :surfaces-slimed)
                                       (. world :surfaces-total))
-                       0 0))
+                       0 0)
 
+  (when (< 0 fade-in-alpha)
+    (love.graphics.setColor 0 0 0 fade-in-alpha)
+    (love.graphics.rectangle "fill" 0 0 screen-width screen-height)
+    (set fade-in-alpha (- fade-in-alpha 0.01))))
+
+;; Ideally, all the components of 'update will be refactored out like this.
+(fn update-player-animation-state [player]
+  (if (and (or (. player :action :right) (. player :action :left))
+           (> 1 (math.abs (. player :y-vel))))
+      (tset player :animation :walk)
+      (tset player :animation :idle)))
+  
 (fn update [dt set-mode]
   (local gravity 128)
   (local camera-lock-goal-x (math.floor (- (/ screen-width 2)
@@ -181,7 +197,14 @@
                                            (/ (. player-sheet :height) 2))))
 
   ;; Update animations.
-  ;; TODO
+  (update-player-animation-state player)
+  
+  (tset player :frame-timer (- (. player :frame-timer) 1))
+  (when (= 0 (. player :frame-timer))
+    (tset player :frame-timer (. player :frame-delay))
+    (tset player :frame (+ 1 (. player :frame)))
+    (when (<= (. player-animations (. player :animation) :frames) (. player :frame))
+      (tset player :frame 0)))
 
   ;; Update camera.
   (tset camera :x-pos (lume.lerp (. camera :x-pos)
