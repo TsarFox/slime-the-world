@@ -46,15 +46,6 @@
         grounded 0
         :else (+ (. player :y-vel) (* gravity dt)))))
 
-(fn impact-bottom [player]
-  (tset player :grounded true))
-
-(fn impact-top [player])
-
-(fn impact-left [player])
-
-(fn impact-right [player])
-
 (fn move-right [player]
   (tset player :orientation :right)
   (tset player :action :right true)
@@ -75,6 +66,11 @@
   (tset player :action :left false)
   (tset player :x-vel (/ (. player :x-vel) 2)))
 
+(fn jump [player]
+  (tset player :action :jump true)
+  (when (> 10 (math.abs (. player :y-vel)))
+    (tset player :y-vel (- (. player :goal-y-vel)))))
+
 (local player-sheet
        {:img (love.graphics.newImage "art/swanky.png")
         :orientation-offset 128
@@ -82,8 +78,46 @@
         :padding-x 8 :padding-y 10})
 
 (fn draw-player [player x y]
-  (let [x-offset (if (= (. player :orientation) :left) 4 0)]
-    (draw.tile x y player-sheet x-offset 0)))
+  (let [x-offset (if (= (. player :orientation) :left) 4 0)
+        x-offset (+ x-offset (. player :animation-x-offset))
+        y-offset (. player :animation-y-offset)]
+    (draw.tile x y player-sheet x-offset y-offset)))
+
+(fn next-frame [frame timer]
+  (if (> 0 timer)
+      (if (>= (+ 1 frame) 4) 0 (+ 1 frame))
+      frame))
+
+(fn next-player-animation-x-offset [player]
+  (let [timer (. player :animation-timer)
+        frame (. player :animation-x-offset)
+        jumping (. player :action :jump)
+        moving (or (. player :action :right) (. player :action :left))
+        grounded (> 10 (math.abs (. player :y-vel)))
+        walking (and moving grounded)]
+    (if jumping (if (> 3 frame) (next-frame frame timer) 3)
+        walking (next-frame frame timer)
+        :else 0)))
+
+(fn next-player-animation-y-offset [player]
+  (let [jumping (. player :action :jump)
+        moving (or (. player :action :right) (. player :action :left))
+        grounded (> 10 (math.abs (. player :y-vel)))
+        walking (and moving grounded)]
+    (if jumping 2
+        walking 1
+        :else 0)))
+
+(fn update-player-animations [player dt]
+  (when (> 10 (math.abs (. player :y-vel)))
+    (tset player :action :jump false))
+  (let [timer (. player :animation-timer)]
+    (tset player :animation-timer (- timer dt)))
+  (tset player :animation-x-offset (next-player-animation-x-offset player))
+  (tset player :animation-y-offset (next-player-animation-y-offset player))
+  (when (> 0 (. player :animation-timer))
+    (tset player :animation-timer 0.1)))
+    
 
 ;; Returns a new player object.
 (fn new-player []
@@ -100,9 +134,9 @@
    :y-vel 0
 
    :orientation :right
-   ;; :frame 0
-   ;; :frame-delay 4
-   ;; :frame-timer 4
+   :animation-x-offset 0
+   :animation-y-offset 0
+   :animation-timer 0
 
    :grounded false
 
@@ -121,7 +155,9 @@
    :stop-right stop-right
    :move-left move-left
    :stop-left stop-left
+   :jump jump
 
-   :draw draw-player})
+   :draw draw-player
+   :update update-player-animations})
 
 {:new new-player}

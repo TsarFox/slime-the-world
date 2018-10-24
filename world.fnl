@@ -261,30 +261,27 @@
     (tset player :x-pos x)
     (tset player :y-pos y)
 
+    (tset player :grounded false)
     (each [_ collision (ipairs collisions)]
       ;; Touching top of surface.
       (when (> 0 (. collision :normal :y))
-        (: player :impact-bottom)
+        (tset player :grounded true)
         (slime-tile world (. collision :other) :top))
 
       ;; Touching bottom of surface.
       (when (< 0 (. collision :normal :y))
-        (: player :impact-top)
         (slime-tile world (. collision :other) :bottom))
 
       ;; Touching left of surface.
       (when (> 0 (. collision :normal :x))
-        (: player :impact-right)
         (slime-tile world (. collision :other) :left))
 
       ;; Touching right of surface.
       (when (< 0 (. collision :normal :x))
-        (: player :impact-left)
         (slime-tile world (. collision :other) :right)))
 
     (tset player :x-vel (: player :next-x-vel dt))
-    (tset player :y-vel (: player :next-y-vel dt))
-    (tset player :grounded false)))
+    (tset player :y-vel (: player :next-y-vel dt))))
 
 ;; Loads the map of the given name into a new world containing `player'. Will
 ;; error out if either 'maps/${name}.png' or 'maps/${name}.fnl' do not exist.

@@ -166,13 +166,15 @@
 
 (fn update [dt set-mode]
   (: current-world :update dt)
+  (: current-player :update dt)
   (let [(camera-x camera-y) (: current-camera :focus-on-object current-player dt)]
     (tset current-camera :x-pos camera-x)
     (tset current-camera :y-pos camera-y)))
 
 (fn keypressed [key set-mode]
   (let [method (if (= key "right") :move-right
-                   (= key "left") :move-left)]
+                   (= key "left") :move-left
+                   (= key "z") :jump)]
     (when method
       (: current-player method))))
 
