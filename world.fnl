@@ -90,6 +90,17 @@
             (when (~= :empty (. tile :type))
               (draw-tile tile screen-x screen-y))))))))
 
+(fn draw-hud [world screen-width screen-height]
+  (let [cur-health (. world :player :cur-health)
+        max-health (. world :player :max-health)
+        font-height (: (love.graphics.getFont) :getHeight)
+        surfaces-slimed (. world :surfaces-slimed)
+        surfaces-total (. world :surfaces-total)
+        health-msg (string.format "h: %d/%d" cur-health max-health)
+        slime-msg (string.format "s: %d/%d" surfaces-slimed surfaces-total)]
+    (love.graphics.print health-msg 0 (- screen-height (* 2 font-height)))
+    (love.graphics.print slime-msg 0 (- screen-height font-height))))
+
 (fn draw-world [world camera-x camera-y screen-width screen-height]
   (love.graphics.clear 0.1 0.1 0.1)
   (draw-map world camera-x camera-y screen-width screen-height)
@@ -99,12 +110,7 @@
         x (- player-x camera-x)
         y (- player-y camera-y)]
     (: player :draw x y))
-  ;; TODO: Refactor this into multiple functions
-  (love.graphics.print (string.format "%d/%d" (. world :surfaces-slimed)
-                                      (. world :surfaces-total))
-                       0 0))
-
-
+  (draw-hud world screen-width screen-height))
 
 ;; Returns whether or not `tile' exists in `checked'.
 (fn tile-checked [tile checked]

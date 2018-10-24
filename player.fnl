@@ -108,6 +108,7 @@
         walking 1
         :else 0)))
 
+;; Statefully modifies the animation parameters associated with `player'.
 (fn update-player-animations [player dt]
   (when (> 10 (math.abs (. player :y-vel)))
     (tset player :action :jump false))
@@ -117,7 +118,6 @@
   (tset player :animation-y-offset (next-player-animation-y-offset player))
   (when (> 0 (. player :animation-timer))
     (tset player :animation-timer 0.1)))
-    
 
 ;; Returns a new player object.
 (fn new-player []
@@ -132,6 +132,9 @@
 
    :x-vel 0
    :y-vel 0
+
+   :cur-health 5
+   :max-health 5
 
    :orientation :right
    :animation-x-offset 0
