@@ -20,13 +20,22 @@
 
 (local draw (require :draw))
 
+;; Updates the position of the player contained in `world' to the world
+;; coordinates, (`x', `y').
+(fn position-player-at [world x y]
+  (let [player (. world :player)
+        collision-map (. world :collision-map)]
+  (tset player :x-pos x)
+  (tset player :y-pos y)
+  (: collision-map :update player x y)))
+
 ;; Returns the tile at the given grid coordinates.
-(fn tile-at [map x y]
+(fn tile-at [world x y]
   (if (and (>= x 0)
-           (< x (. map :width))
+           (< x (. world :width))
            (>= y 0)
-           (< y (. map :height)))
-      (. map :tiles (+ 1 y) (+ 1 x))
+           (< y (. world :height)))
+      (. world :tiles (+ 1 y) (+ 1 x))
       nil))
 
 (local tile-sheet
@@ -47,12 +56,11 @@
   (let [tile-offset (. slime-sheet :offsets orientation)]
     (draw.tile x y slime-sheet tile-offset 0)))
 
-
 ;; Draws all slimed surfaces for a tile at screen coordinates, (`x', `y').
 (fn draw-slime [tile x y]
   (each [orientation slimed (pairs (. tile :slimed))]
     (when slimed
-      (draw-slime-decal tile orientation x y))))
+      (draw-slime-decal orientation x y))))
 
 ;; Draws a single tile at the screen coordinates, (`x', `y').
 (fn draw-tile [tile x y]
@@ -61,24 +69,42 @@
     (draw-slime tile x y)))
 
 ;; ;; Drawing routine for rendering the tiles visible from a given camera offset.
-(fn draw-map [map camera-x camera-y screen-width screen-height]
+(fn draw-map [world camera-x camera-y screen-width screen-height]
   (let [tile-width (. tile-sheet :width)
         tile-height (. tile-sheet :height)
         how-many-x (+ 1 (/ screen-width tile-width))
         how-many-y (+ 1 (/ screen-height tile-height))
         start-x (math.floor (/ camera-x tile-width))
         start-y (math.floor (/ camera-y tile-height))
-        width (. map :width)
-        height (. map :height)]
+        width (. world :width)
+        height (. world :height)]
     (for [x-offset 0 how-many-x]
       (for [y-offset 0 how-many-y]
         (when (and (and (>= (+ start-x x-offset) 0) (< (+ start-x x-offset) width))
                    (and (>= (+ start-y y-offset) 0) (< (+ start-y y-offset) height)))
-          (let [tile (tile-at map (+ start-x x-offset) (+ start-y y-offset))
+          (let [tile (tile-at world (+ start-x x-offset) (+ start-y y-offset))
                 screen-x (- (* x-offset tile-width) (% camera-x tile-width))
-                screen-y (- (* y-offset tile-height) (% camera-y tile-height))]
+                screen-x (lume.round screen-x)
+                screen-y (- (* y-offset tile-height) (% camera-y tile-height))
+                screen-y (lume.round screen-y)]
             (when (~= :empty (. tile :type))
               (draw-tile tile screen-x screen-y))))))))
+
+(fn draw-world [world camera-x camera-y screen-width screen-height]
+  (love.graphics.clear 0.1 0.1 0.1)
+  (draw-map world camera-x camera-y screen-width screen-height)
+  (let [player (. world :player)
+        player-x (. player :x-pos)
+        player-y (. player :y-pos)
+        x (- player-x camera-x)
+        y (- player-y camera-y)]
+    (: player :draw x y))
+  ;; TODO: Refactor this into multiple functions
+  (love.graphics.print (string.format "%d/%d" (. world :surfaces-slimed)
+                                      (. world :surfaces-total))
+                       0 0))
+
+
 
 ;; Returns whether or not `tile' exists in `checked'.
 (fn tile-checked [tile checked]
@@ -90,7 +116,7 @@
   res)
 
 ;; Modified implementation of <https://en.wikipedia.org/wiki/Flood_fill>.
-(fn count-surfaces-recur [map tile checked]
+(fn count-surfaces-recur [world tile checked]
   (var surfaces 0)
 
   (when (not (tile-checked tile checked))
@@ -98,52 +124,52 @@
 
     (let [x (/ (. tile :x-pos) (. tile-sheet :width))
           y (/ (. tile :y-pos) (. tile-sheet :height))
-          width (. map :width)
-          height (. map :height)]
+          width (. world :width)
+          height (. world :height)]
       (when (>= x 0)
-        (let [tile (tile-at map (- x 1) y)]
+        (let [tile (tile-at world (- x 1) y)]
           (if (= :empty (. tile :type))
-              (set surfaces (+ surfaces (count-surfaces-recur map tile checked)))
+              (set surfaces (+ surfaces (count-surfaces-recur world tile checked)))
               (set surfaces (+ 1 surfaces)))))
 
       (when (< x width)
-        (let [tile (tile-at map (+ x 1) y)]
+        (let [tile (tile-at world (+ x 1) y)]
           (if (= :empty (. tile :type))
-              (set surfaces (+ surfaces (count-surfaces-recur map tile checked)))
+              (set surfaces (+ surfaces (count-surfaces-recur world tile checked)))
               (set surfaces (+ 1 surfaces)))))
 
       (when (>= y 0)
-        (let [tile (tile-at map x (- y 1))]
+        (let [tile (tile-at world x (- y 1))]
           (if (= :empty (. tile :type))
-              (set surfaces (+ surfaces (count-surfaces-recur map tile checked)))
+              (set surfaces (+ surfaces (count-surfaces-recur world tile checked)))
               (set surfaces (+ 1 surfaces)))))
 
       (when (< y height)
-        (let [tile (tile-at map x (+ y 1))]
+        (let [tile (tile-at world x (+ y 1))]
           (if (= :empty (. tile :type))
-              (set surfaces (+ surfaces (count-surfaces-recur map tile checked)))
+              (set surfaces (+ surfaces (count-surfaces-recur world tile checked)))
               (set surfaces (+ 1 surfaces)))))))
 
   surfaces)
 
-;; Returns some tile in `map' of type `tile-type', or nil if no such tile is
+;; Returns some tile in `world' of type `tile-type', or nil if no such tile is
 ;; present.
-(fn find-any [tile-type map]
+(fn find-any [tile-type world]
   (var res nil)
-  (let [width (. map :width)
-        height (. map :height)]
+  (let [width (. world :width)
+        height (. world :height)]
     (for [x 0 (- width 1)]
       (for [y 0 (- height 1)]
-        (let [tile (tile-at map x y)]
+        (let [tile (tile-at world x y)]
           (when (= tile-type (. tile :type))
             (set res tile))))))
   res)
 
 ;; Returns the number of slime-able surfaces in the given grid of tiles.
-(fn count-surfaces [map]
-  (let [seed (find-any :empty map)]
+(fn count-surfaces [world]
+  (let [seed (find-any :empty world)]
     (when seed
-      (count-surfaces-recur map seed []))))
+      (count-surfaces-recur world seed []))))
 
 (fn add-player-to-collision-map [collision-map player]
   (let [x (. player :x-pos)
@@ -157,17 +183,17 @@
         y (. tile :y-pos)
         width (. tile :width)
         height (. tile :height)]
-    (: collision-map :add tile (* x width) (* y height) width height)))
+    (: collision-map :add tile x y width height)))
 
 ;; Returns a new collision map containing `player' and everything in `map'.
-(fn new-collision-map [map player]
+(fn new-collision-map [world player]
   (let [collision-map (bump.newWorld 32)
-        width (. map :width)
-        height (. map :height)]
+        width (. world :width)
+        height (. world :height)]
     (add-player-to-collision-map collision-map player)
     (for [x 0 (- width 1)]
       (for [y 0 (- height 1)]
-        (let [tile (tile-at map x y)]
+        (let [tile (tile-at world x y)]
           (when (~= :empty (. tile :type))
             (add-tile-to-collision-map collision-map tile)))))
     collision-map))
@@ -221,17 +247,60 @@
 (fn load-meta [path]
   (fennel.dofile path))
 
+(fn slime-tile [world tile orientation]
+  (when (not (. tile :slimed orientation))
+    (let [surfaces-slimed (. world :surfaces-slimed)]
+      (tset world :surfaces-slimed (+ 1 surfaces-slimed))
+      (tset tile :slimed orientation true))))
+
+(fn update-world [world dt]
+  (let [player (. world :player)
+        collision-map (. world :collision-map)
+        (goal-x goal-y) (: player :next-position dt)
+        (x y collisions _) (: collision-map :move player goal-x goal-y)]
+    (tset player :x-pos x)
+    (tset player :y-pos y)
+
+    (each [_ collision (ipairs collisions)]
+      ;; Touching top of surface.
+      (when (> 0 (. collision :normal :y))
+        (: player :impact-bottom)
+        (slime-tile world (. collision :other) :top))
+
+      ;; Touching bottom of surface.
+      (when (< 0 (. collision :normal :y))
+        (: player :impact-top)
+        (slime-tile world (. collision :other) :bottom))
+
+      ;; Touching left of surface.
+      (when (> 0 (. collision :normal :x))
+        (: player :impact-right)
+        (slime-tile world (. collision :other) :left))
+
+      ;; Touching right of surface.
+      (when (< 0 (. collision :normal :x))
+        (: player :impact-left)
+        (slime-tile world (. collision :other) :right)))
+
+    (tset player :x-vel (: player :next-x-vel dt))
+    (tset player :y-vel (: player :next-y-vel dt))
+    (tset player :grounded false)))
+
 ;; Loads the map of the given name into a new world containing `player'. Will
 ;; error out if either 'maps/${name}.png' or 'maps/${name}.fnl' do not exist.
 (fn new-world [name player]
   (let [tiles-path (.. "maps/" name ".png")
         meta-path (.. "maps/" name ".fnl")
         res (load-tiles (love.image.newImageData tiles-path))
+        res (lume.extend res {:player player})
         res (lume.extend res {:surfaces-slimed 0 :meta (load-meta meta-path)})
         res (lume.extend res {:surfaces-total (count-surfaces res)})
         res (lume.extend res {:collision-map (new-collision-map res player)})
-        res (lume.extend res {:draw draw-map})]
+        res (lume.extend res {:position-player-at position-player-at})
+        res (lume.extend res {:draw draw-world})
+        res (lume.extend res {:update update-world})]
     res))
 
-{:tile-at tile-at
+{:tile-sheet tile-sheet
+ :tile-at tile-at
  :new new-world}

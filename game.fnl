@@ -15,7 +15,7 @@
 ;;;; You should have received a copy of the GNU General Public License along
 ;;;; with slime-the-world. If not, see <http://www.gnu.org/licenses/>.
 
-;; (local camera (require :camera))
+(local camera (require :camera))
 (local player (require :player))
 (local world (require :world))
 
@@ -50,7 +50,7 @@
 
 
 ;; (fn update [dt set-mode]
-;;   (local gravity 128)
+;;   
 ;;   (local camera-lock-goal-x (math.floor (- (/ screen-width 2)
 ;;                                            (/ (. player-sheet :width) 2))))
 ;;   (local camera-lock-goal-y (math.floor (- (/ screen-height 2)
@@ -156,20 +156,31 @@
 
 (local current-player (player.new))
 (local current-world (world.new "sandbox" current-player))
-(: current-player :position-at 128 128)
-
-(var camera-x 0)
-(var camera-y 0)
+(local current-camera (camera.new current-world screen-width screen-height))
+(: current-world :position-player-at 128 128)
 
 (fn draw [message]
-  (: current-world :draw camera-x camera-y screen-width screen-height)
-  (: current-player :draw 128 128))
+  (let [camera-x (. current-camera :x-pos)
+        camera-y (. current-camera :y-pos)]
+    (: current-world :draw camera-x camera-y screen-width screen-height)))
 
-(fn update [dt set-mode])
+(fn update [dt set-mode]
+  (: current-world :update dt)
+  (let [(camera-x camera-y) (: current-camera :focus-on-object current-player dt)]
+    (tset current-camera :x-pos camera-x)
+    (tset current-camera :y-pos camera-y)))
 
-(fn keypressed [key set-mode])
+(fn keypressed [key set-mode]
+  (let [method (if (= key "right") :move-right
+                   (= key "left") :move-left)]
+    (when method
+      (: current-player method))))
 
-(fn keyreleased [key set-mode])
+(fn keyreleased [key set-mode]
+  (let [method (if (= key "right") :stop-right
+                   (= key "left") :stop-left)]
+    (when method
+      (: current-player method))))
 
 {:draw draw
  :update update
