@@ -35,7 +35,7 @@
                                             "abcdefghijklmnopqrstuvwxyz"
                                             "[\\]^_`{|}~")))
 
-(var mode (require :game))
+(var mode (require :menu))
 
 (fn set-mode [mode-name ...]
   (set mode (require mode-name))
@@ -80,5 +80,5 @@
 (fn love.keyreleased [key]
   (mode.keyreleased key set-mode))
 
-(fn love.gamepadpressed [_ button]
-  (print button))
+(fn love.mousepressed [x y]
+  (mode.click (/ x scale) (/ y scale) set-mode))

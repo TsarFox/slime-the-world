@@ -32,14 +32,14 @@
 (var current-camera nil)
 
 (fn next-map []
-  (set screen-alpha 1)
-  (set welcome-message-y (- (: (love.graphics.getFont) :getHeight)))
-  (set welcome-message-timer 64)
-
   (let [map-name (table.remove map-order 1)]
-    (set current-player (player.new))
-    (set current-world (world.new map-name current-player))
-    (set current-camera (camera.new current-world screen-width screen-height))
+    (when (~= nil map-name)
+      (set screen-alpha 1)
+      (set welcome-message-y (- (: (love.graphics.getFont) :getHeight)))
+      (set welcome-message-timer 64)
+      (set current-player (player.new))
+      (set current-world (world.new map-name current-player))
+      (set current-camera (camera.new current-world screen-width screen-height)))
     (~= nil map-name)))
 
 (next-map)
@@ -67,7 +67,7 @@
         camera-y (. current-camera :y-pos)]
     (: current-world :draw camera-x camera-y screen-width screen-height))
   (draw-welcome-message)
-  (draw-fade-in-mask))  
+  (draw-fade-in-mask))
 
 (fn update [dt set-mode]
   (: current-world :update dt)
@@ -77,8 +77,8 @@
     (tset current-camera :y-pos camera-y))
 
   (when (= (. current-world :surfaces-slimed) (. current-world :surfaces-total))
-    ;; if (next-map) returns nil, set-mode to endgame
-    (next-map)))
+    (when (not (next-map))
+      (set-mode :credits))))
 
 (fn keypressed [key set-mode]
   (when (= key "x")
@@ -97,7 +97,10 @@
     (when method
       (: current-player method))))
 
+(fn click [])
+
 {:draw draw
  :update update
  :keypressed keypressed
- :keyreleased keyreleased}
+ :keyreleased keyreleased
+ :click click}
