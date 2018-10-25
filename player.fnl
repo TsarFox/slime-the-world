@@ -71,6 +71,10 @@
   (when (> 10 (math.abs (. player :y-vel)))
     (tset player :y-vel (- (. player :goal-y-vel)))))
 
+(fn bounce [player x-normal y-normal]
+  (tset player :x-vel (- (* 8 x-normal) (. player :x-vel)))
+  (tset player :y-vel (- (math.abs (* 8 y-normal)) (. player :y-vel))))
+
 (local player-sheet
        {:img (love.graphics.newImage "art/swanky.png")
         :orientation-offset 128
@@ -159,6 +163,7 @@
    :move-left move-left
    :stop-left stop-left
    :jump jump
+   :bounce bounce
 
    :draw draw-player
    :update update-player-animations})

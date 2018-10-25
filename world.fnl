@@ -101,15 +101,19 @@
     (love.graphics.print health-msg 0 (- screen-height (* 2 font-height)))
     (love.graphics.print slime-msg 0 (- screen-height font-height))))
 
+(fn draw-object [object camera-x camera-y]
+  (let [x-pos (. object :x-pos)
+        y-pos (. object :y-pos)
+        x (- x-pos camera-x)
+        y (- y-pos camera-y)]
+    (: object :draw x y)))
+
 (fn draw-world [world camera-x camera-y screen-width screen-height]
   (love.graphics.clear 0.1 0.1 0.1)
   (draw-map world camera-x camera-y screen-width screen-height)
-  (let [player (. world :player)
-        player-x (. player :x-pos)
-        player-y (. player :y-pos)
-        x (- player-x camera-x)
-        y (- player-y camera-y)]
-    (: player :draw x y))
+  (draw-object (. world :player) camera-x camera-y)
+  (each [_ slimeball (ipairs (. world :slimeballs))]
+    (draw-object slimeball camera-x camera-y))
   (draw-hud world screen-width screen-height))
 
 ;; Returns whether or not `tile' exists in `checked'.
@@ -177,12 +181,12 @@
     (when seed
       (count-surfaces-recur world seed []))))
 
-(fn add-player-to-collision-map [collision-map player]
-  (let [x (. player :x-pos)
-        y (. player :y-pos)
-        width (. player :width)
-        height (. player :height)]
-    (: collision-map :add player x y width height)))
+(fn add-object-to-collision-map [collision-map object]
+  (let [x (. object :x-pos)
+        y (. object :y-pos)
+        width (. object :width)
+        height (. object :height)]
+    (: collision-map :add object x y width height)))
 
 (fn add-tile-to-collision-map [collision-map tile]
   (let [x (. tile :x-pos)
@@ -196,7 +200,7 @@
   (let [collision-map (bump.newWorld 32)
         width (. world :width)
         height (. world :height)]
-    (add-player-to-collision-map collision-map player)
+    (add-object-to-collision-map collision-map player)
     (for [x 0 (- width 1)]
       (for [y 0 (- height 1)]
         (let [tile (tile-at world x y)]
@@ -207,7 +211,9 @@
 ;; Creates a new tile object of the given `type-type' positioned at world
 ;; coordinates (`x', `y').
 (fn new-tile [tile-type x y]
-  {:width (. tile-sheet :width)
+  {:is-tile true
+
+   :width (. tile-sheet :width)
    :height (. tile-sheet :height)
 
    :x-pos x
@@ -259,35 +265,72 @@
       (tset world :surfaces-slimed (+ 1 surfaces-slimed))
       (tset tile :slimed orientation true))))
 
+(fn move-slimeball [world slimeball dt]
+  (let [collision-map (. world :collision-map)
+        (goal-x goal-y) (: slimeball :next-position dt)
+        filter (fn [] "cross")
+        (x y collisions _) (: collision-map :move slimeball goal-x goal-y filter)]
+    (each [_ collision (ipairs collisions)]
+      (let [other (. collision :other)
+            x-normal (. collision :normal :x)
+            y-normal (. collision :normal :y)]
+        (when (. other :is-tile)
+          (if (> 0 y-normal) (slime-tile world other :top)
+              (< 0 y-normal) (slime-tile world other :bottom)
+              (> 0 x-normal) (slime-tile world other :left)
+              (< 0 x-normal) (slime-tile world other :right))
+
+          (for [i 1 (# (. world :slimeballs))]
+            (when (= slimeball (. (. world :slimeballs) i))
+              (table.remove (. world :slimeballs) i))))))
+    (tset slimeball :x-pos x)
+    (tset slimeball :y-pos y)))
+
 (fn update-world [world dt]
   (let [player (. world :player)
+        slimeballs (. world :slimeballs)
         collision-map (. world :collision-map)
         (goal-x goal-y) (: player :next-position dt)
-        (x y collisions _) (: collision-map :move player goal-x goal-y)]
+        filter (fn [_ other] (if (. other :is-tile) "slide" "cross"))
+        (x y collisions _) (: collision-map :move player goal-x goal-y filter)]
+    (each [_ slimeball (ipairs slimeballs)]
+      (move-slimeball world slimeball dt)
+      (: slimeball :update dt))
+
     (tset player :x-pos x)
     (tset player :y-pos y)
 
     (tset player :grounded false)
     (each [_ collision (ipairs collisions)]
-      ;; Touching top of surface.
-      (when (> 0 (. collision :normal :y))
-        (tset player :grounded true)
-        (slime-tile world (. collision :other) :top))
+      (let [other (. collision :other)
+            x-normal (. collision :normal :x)
+            y-normal (. collision :normal :y)]
+        (when (. other :is-tile)
+          ;; Touching top of surface.
+          (when (> 0 y-normal)
+            (tset player :grounded true)
+            (slime-tile world other :top))
 
-      ;; Touching bottom of surface.
-      (when (< 0 (. collision :normal :y))
-        (slime-tile world (. collision :other) :bottom))
+          ;; Touching bottom of surface.
+          (when (< 0 y-normal)
+            (slime-tile world other :bottom))
 
-      ;; Touching left of surface.
-      (when (> 0 (. collision :normal :x))
-        (slime-tile world (. collision :other) :left))
+          ;; Touching left of surface.
+          (when (> 0 x-normal)
+            (slime-tile world other :left)
+            (: player :bounce x-normal y-normal))
 
-      ;; Touching right of surface.
-      (when (< 0 (. collision :normal :x))
-        (slime-tile world (. collision :other) :right)))
+          ;; Touching right of surface.
+          (when (< 0 x-normal)
+            (slime-tile world other :right)
+            (: player :bounce x-normal y-normal)))))
 
     (tset player :x-vel (: player :next-x-vel dt))
     (tset player :y-vel (: player :next-y-vel dt))))
+
+(fn add-slimeball [world slimeball]
+  (table.insert (. world :slimeballs) slimeball)
+  (add-object-to-collision-map (. world :collision-map) slimeball))
 
 ;; Loads the map of the given name into a new world containing `player'. Will
 ;; error out if either 'maps/${name}.png' or 'maps/${name}.fnl' do not exist.
@@ -296,10 +339,12 @@
         meta-path (.. "maps/" name ".fnl")
         res (load-tiles (love.image.newImageData tiles-path))
         res (lume.extend res {:player player})
+        res (lume.extend res {:slimeballs []})
         res (lume.extend res {:surfaces-slimed 0 :meta (load-meta meta-path)})
         res (lume.extend res {:surfaces-total (count-surfaces res)})
         res (lume.extend res {:collision-map (new-collision-map res player)})
         res (lume.extend res {:position-player-at position-player-at})
+        res (lume.extend res {:add-slimeball add-slimeball})
         res (lume.extend res {:draw draw-world})
         res (lume.extend res {:update update-world})]
     res))
