@@ -3,8 +3,13 @@
 #+EMAIL: zerodaysfordays@sdf.lonestar.org
 #+DATE:	<2018-10-19 Fri>
 
-My entry to this year's [[https://events.tymoon.eu/4][Autumn Lisp Game Jam]]. The theme was slime, so it's a
-game about covering everything in sight with slime.
+This is my entry to this year's [[https://events.tymoon.eu/4][Autumn Lisp Game Jam]]. The dialect of Lisp I
+chose to use for this entry was [[https://fennel-lang.org/][Fennel]], a simple and elegant Lisp that I feel
+perfectly matches the simplicity and elegance of Lua. The theme was slime, so
+it's a game about covering everything in sight with slime. As of right now, this
+has the distinct charm of a demo that was far too ambitious and rushed to be
+much more than a buggy proof of concept, but I do hope that enjoy it in some
+capacity.
 
 * 1. Running the Game
 
@@ -15,7 +20,12 @@ following from the root directory:
 love .
 #+END_SRC
 
-* 2. Thanks!
+* 2. Instructions
+
+You can move laterally with the left and right arrow keys, jump with the 'z'
+key, and spew balls of slime with the 'x' key.
+
+* 3. Thanks!
 
 ** [[https://technomancy.us][Phil Hagelberg]]
 
@@ -28,17 +38,31 @@ the API's for LÖVE as well as a few other excellent Lua libraries, listed below
 
 Of [[https://github.com/rxi/lume][lume.lua]], which provides some very pleasant functional constructs such as
 =map=, as well as typical linear interpolation and vector math. lume is released
-under the MIT License.
+under the MIT license.
 
 ** [[http://kiki.to/][Enrique García Cota]]
 
 Of [[https://github.com/kikito/bump.lua][bump.lua]], a much simpler library for collision detection than the one
-provided by LÖVE.
+provided by LÖVE. bump.lua is released under the MIT license.
 
 ** [[http://clintbellanger.net/][Clint Bellanger]]
 
-Of the [[https://opengameart.org/content/boxy-bold-font][Boxy Bold Font]] that I used in this game.
+Of the [[https://opengameart.org/content/boxy-bold-font][Boxy Bold Font]] that I used in this game. The font is licensed under CC0.
 
 ** [[https://love2d.org/][LOVE Development Team]]
 
 I really did fall in löve with the LÖVE API's.
+
+** Various Users on The Mod Archive
+
+The wonderful chiptunes are, sadly, not my own. To fit into the requirement that
+all existing assets be free for others to use as well, I only picked modules
+that were licensed in the public domain. Among them:
+
+- [[https://modarchive.org/index.php?request=view_by_moduleid&query=50010][Nebulos NES by SoDa7]]
+- [[https://modarchive.org/index.php?request=view_by_moduleid&query=172462][SpeedChip by KatieCadetAKASailorMoonFan]]
+- [[https://modarchive.org/index.php?request=view_by_moduleid&query=173084][October_Chip by Drozerix]]
+- [[https://modarchive.org/index.php?request=view_by_moduleid&query=172732][The_Dim_Dungeon by Drozerix]]
+- [[https://modarchive.org/index.php?request=view_by_moduleid&query=172424][The_Epic_Chip by Drozerix]]
+- [[https://modarchive.org/index.php?request=view_by_moduleid&query=173935][Girl From Mars by Drozerix]]
+- [[https://modarchive.org/index.php?request=view_by_moduleid&query=173939][Key Generators by Drozerix]]
