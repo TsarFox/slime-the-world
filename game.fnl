@@ -20,35 +20,80 @@
 (local slimeball (require :slimeball))
 (local world (require :world))
 
-(local current-player (player.new))
-(local current-world (world.new "sandbox" current-player))
-(local current-camera (camera.new current-world screen-width screen-height))
-(: current-world :position-player-at 128 128)
+(local map-order ["sandbox" "babysteps"])
+
+(var screen-alpha 1)
+(var welcome-message-y (- (: (love.graphics.getFont) :getHeight)))
+(var welcome-message-timer 64)
+(local welcome-message-goal-y (: (love.graphics.getFont) :getHeight))
+
+(var current-player nil)
+(var current-world nil)
+(var current-camera nil)
+
+(fn next-map []
+  (set screen-alpha 1)
+  (set welcome-message-y (- (: (love.graphics.getFont) :getHeight)))
+  (set welcome-message-timer 64)
+
+  (let [map-name (table.remove map-order 1)]
+    (set current-player (player.new))
+    (set current-world (world.new map-name current-player))
+    (set current-camera (camera.new current-world screen-width screen-height))
+    (~= nil map-name)))
+
+(next-map)
+
+(fn draw-fade-in-mask []
+  (let [(r g b a) (love.graphics.getColor)]
+    (love.graphics.setColor 0 0 0 screen-alpha)
+    (love.graphics.rectangle "fill" 0 0 screen-width screen-height)
+    (love.graphics.setColor r g b a))
+  (when (< 0 screen-alpha)
+    (set screen-alpha (- screen-alpha 0.05))))
+
+(fn draw-welcome-message []
+  (when (< 0 welcome-message-timer)
+    (let [msg (string.format "Welcome to %s" (. current-world :name))
+          x (/ (- screen-width (: (love.graphics.getFont) :getWidth msg)) 2)]
+      (love.graphics.print msg x welcome-message-y))
+    (when (< welcome-message-y welcome-message-goal-y)
+      (set welcome-message-y (+ welcome-message-y 1)))
+    (when (= welcome-message-y welcome-message-goal-y)
+      (set welcome-message-timer (- welcome-message-timer 1)))))
 
 (fn draw [message]
   (let [camera-x (. current-camera :x-pos)
         camera-y (. current-camera :y-pos)]
-    (: current-world :draw camera-x camera-y screen-width screen-height)))
+    (: current-world :draw camera-x camera-y screen-width screen-height))
+  (draw-welcome-message)
+  (draw-fade-in-mask))  
 
 (fn update [dt set-mode]
   (: current-world :update dt)
   (: current-player :update dt)
   (let [(camera-x camera-y) (: current-camera :focus-on-object current-player dt)]
     (tset current-camera :x-pos camera-x)
-    (tset current-camera :y-pos camera-y)))
+    (tset current-camera :y-pos camera-y))
+
+  (when (= (. current-world :surfaces-slimed) (. current-world :surfaces-total))
+    ;; if (next-map) returns nil, set-mode to endgame
+    (next-map)))
 
 (fn keypressed [key set-mode]
   (when (= key "x")
     (: current-world :add-slimeball (slimeball.new current-player)))
   (let [method (if (= key "right") :move-right
                    (= key "left") :move-left
+                   (= key "up") :face-upwards
                    (= key "z") :jump)]
     (when method
       (: current-player method))))
 
 (fn keyreleased [key set-mode]
   (let [method (if (= key "right") :stop-right
-                   (= key "left") :stop-left)]
+                   (= key "left") :stop-left
+                   (= key "up") :face-normal)]
     (when method
       (: current-player method))))
 

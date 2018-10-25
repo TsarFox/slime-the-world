@@ -51,8 +51,12 @@
                 (- player-x player-width))
      :y-pos player-y
 
-     :x-vel (if (= :right orientation) 128 (- 128))
-     :y-vel 0
+     :x-vel (if (. player :action :sliming-up)
+                0
+                (if (= :right orientation) 128 (- 128)))
+     :y-vel (if (. player :action :sliming-up)
+                (- 128)
+                0) 
 
      :next-position next-position
      :update update-slimeball

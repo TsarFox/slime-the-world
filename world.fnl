@@ -91,14 +91,10 @@
               (draw-tile tile screen-x screen-y))))))))
 
 (fn draw-hud [world screen-width screen-height]
-  (let [cur-health (. world :player :cur-health)
-        max-health (. world :player :max-health)
-        font-height (: (love.graphics.getFont) :getHeight)
+  (let [font-height (: (love.graphics.getFont) :getHeight)
         surfaces-slimed (. world :surfaces-slimed)
         surfaces-total (. world :surfaces-total)
-        health-msg (string.format "h: %d/%d" cur-health max-health)
-        slime-msg (string.format "s: %d/%d" surfaces-slimed surfaces-total)]
-    (love.graphics.print health-msg 0 (- screen-height (* 2 font-height)))
+        slime-msg (string.format "%d/%d" surfaces-slimed surfaces-total)]
     (love.graphics.print slime-msg 0 (- screen-height font-height))))
 
 (fn draw-object [object camera-x camera-y]
@@ -313,7 +309,8 @@
 
           ;; Touching bottom of surface.
           (when (< 0 y-normal)
-            (slime-tile world other :bottom))
+            (slime-tile world other :bottom)
+            (tset player :y-vel 0))
 
           ;; Touching left of surface.
           (when (> 0 x-normal)
@@ -340,13 +337,14 @@
         res (load-tiles (love.image.newImageData tiles-path))
         res (lume.extend res {:player player})
         res (lume.extend res {:slimeballs []})
-        res (lume.extend res {:surfaces-slimed 0 :meta (load-meta meta-path)})
+        res (lume.extend res {:surfaces-slimed 0})
+        res (lume.extend res (load-meta meta-path))
         res (lume.extend res {:surfaces-total (count-surfaces res)})
         res (lume.extend res {:collision-map (new-collision-map res player)})
-        res (lume.extend res {:position-player-at position-player-at})
         res (lume.extend res {:add-slimeball add-slimeball})
         res (lume.extend res {:draw draw-world})
         res (lume.extend res {:update update-world})]
+    (position-player-at res (. res :player-spawn-x) (. res :player-spawn-y))
     res))
 
 {:tile-sheet tile-sheet

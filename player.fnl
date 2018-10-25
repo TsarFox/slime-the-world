@@ -75,6 +75,12 @@
   (tset player :x-vel (- (* 8 x-normal) (. player :x-vel)))
   (tset player :y-vel (- (math.abs (* 8 y-normal)) (. player :y-vel))))
 
+(fn face-upwards [player]
+  (tset player :action :sliming-up true))
+
+(fn face-normal [player]
+  (tset player :action :sliming-up false))
+
 (local player-sheet
        {:img (love.graphics.newImage "art/swanky.png")
         :orientation-offset 128
@@ -137,9 +143,6 @@
    :x-vel 0
    :y-vel 0
 
-   :cur-health 5
-   :max-health 5
-
    :orientation :right
    :animation-x-offset 0
    :animation-y-offset 0
@@ -149,7 +152,8 @@
 
    :action {:jump false
             :right false
-            :left false}
+            :left false
+            :sliming-up false}
 
    :next-position next-position
    :next-x-vel next-x-vel
@@ -164,6 +168,8 @@
    :stop-left stop-left
    :jump jump
    :bounce bounce
+   :face-upwards face-upwards
+   :face-normal face-normal
 
    :draw draw-player
    :update update-player-animations})
