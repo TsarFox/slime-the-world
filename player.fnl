@@ -20,6 +20,7 @@
 (local draw (require :draw))
 
 (local gravity 128)
+(local jump-sfx (love.audio.newSource "sound/jump.wav" "static"))
 
 ;; Returns a pair, (x, y) that represents the player's next position, assuming
 ;; that it did /not/ collide with anything. The role of collision detection, and
@@ -69,6 +70,7 @@
 (fn jump [player]
   (tset player :action :jump true)
   (when (> 10 (math.abs (. player :y-vel)))
+    (: jump-sfx :play)
     (tset player :y-vel (- (. player :goal-y-vel)))))
 
 (fn bounce [player x-normal y-normal]

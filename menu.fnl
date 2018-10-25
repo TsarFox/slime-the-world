@@ -21,6 +21,11 @@
 
 (local logo (love.graphics.newImage "art/logo.png"))
 
+(local menu-music (love.audio.newSource "music/nesulos.it" "stream"))
+(: menu-music :setVolume 0.5)
+(: menu-music :setLooping true)
+(: menu-music :play)
+
 (fn button-width [button]
   (: (love.graphics.getFont) :getWidth (. button :text)))
 
@@ -48,10 +53,11 @@
     (love.graphics.print text x y)))
 
 (fn play-clicked [set-mode]
+  (: menu-music :stop)
   (set-mode :game))
 
 (fn sound-clicked []
-  (print "No sound"))
+  (love.audio.setVolume (if (= (love.audio.getVolume) 0) 1 0)))
 
 (fn quit-clicked []
   (love.event.quit))
@@ -109,8 +115,7 @@
                  (>= mouse-y y) (<= mouse-y (+ y height)))
         ((. button :function) set-mode)))))
 
-{:activate activate
- :draw draw
+{:draw draw
  :update update
  :keypressed keypressed
  :keyreleased keyreleased

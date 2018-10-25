@@ -20,6 +20,23 @@
 (local slimeball (require :slimeball))
 (local world (require :world))
 
+(local music [(love.audio.newSource "music/girl_from_mars.xm" "stream")
+              (love.audio.newSource "music/key_generators.xm" "stream")
+              (love.audio.newSource "music/miafan2010_-_speed_chip.s3m" "stream")
+              (love.audio.newSource "music/october_chip.xm" "stream")
+              (love.audio.newSource "music/the_dim_dungeon.xm" "stream")
+              (love.audio.newSource "music/the_epic_chip.xm" "stream")])
+(var current-music nil)
+
+(fn update-music []
+  (when current-music
+    (: current-music :stop))
+  (let [index (math.random 1 (# music))]
+    (set current-music (. music index))
+    (: current-music :setVolume 0.5)
+    (: current-music :setLooping true)
+    (: current-music :play)))
+
 (local map-order ["sandbox" "babysteps"])
 
 (var screen-alpha 1)
@@ -31,9 +48,12 @@
 (var current-world nil)
 (var current-camera nil)
 
+(local spit-sfx (love.audio.newSource "sound/spit.wav" "static"))
+
 (fn next-map []
   (let [map-name (table.remove map-order 1)]
     (when (~= nil map-name)
+      (update-music)
       (set screen-alpha 1)
       (set welcome-message-y (- (: (love.graphics.getFont) :getHeight)))
       (set welcome-message-timer 64)
@@ -82,6 +102,7 @@
 
 (fn keypressed [key set-mode]
   (when (= key "x")
+    (: spit-sfx :play)
     (: current-world :add-slimeball (slimeball.new current-player)))
   (let [method (if (= key "right") :move-right
                    (= key "left") :move-left
@@ -99,7 +120,11 @@
 
 (fn click [])
 
-{:draw draw
+(fn activate []
+  (update-music))
+
+{:activate activate
+ :draw draw
  :update update
  :keypressed keypressed
  :keyreleased keyreleased
