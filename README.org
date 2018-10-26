@@ -53,6 +53,11 @@ Of the [[https://opengameart.org/content/boxy-bold-font][Boxy Bold Font]] that I
 
 I really did fall in löve with the LÖVE API's.
 
+** [[http://www.drpetter.se/about.html][Tomas Pettersson]]
+
+Of [[http://www.drpetter.se/project_sfxr.html][sfxr]], the tool I used to produce the jumping and spitting sound effects. sfxr
+is released under the MIT license.
+
 ** Various Users on The Mod Archive
 
 The wonderful chiptunes are, sadly, not my own. To fit into the requirement that
