@@ -37,7 +37,8 @@
     (: current-music :setLooping true)
     (: current-music :play)))
 
-(local map-order ["sandbox" "babysteps"])
+(local map-order ["sandbox" "babysteps" "bounce" "tubes"
+                  "obstacle" "fall" "gimmick" "laststretch"])
 
 (var screen-alpha 1)
 (var welcome-message-y (- (: (love.graphics.getFont) :getHeight)))

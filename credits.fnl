@@ -32,9 +32,27 @@
              ""
              "Be sure to read"
              "the README.org"
-             "for greetz."
              ""
-             "With love,"
+             "Greetz to"
+             "technomancy"
+             "rxi"
+             "kikito"
+             "clintbellanger"
+             "drpetter"
+             "soda7"
+             "katiecadet"
+             "drozerix"
+             "korcankaraokcu"
+             "and all the"
+             "friendly faces"
+             "on sdf, tide.town"
+             "and the lisp"
+             "community"
+             ""
+             "I love all of ya"
+             ""
+             "Again, thanks!"
+             ""
              "Jakob"])
 
 (var offset (- 216))
@@ -49,7 +67,7 @@
 
 (fn update [dt set-mode]
   (set offset (+ offset (* 16 dt)))
-  (when (> offset 420)
+  (when (> offset 750)
     (set-mode :menu)))
 
 (fn keypressed []

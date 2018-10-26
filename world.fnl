@@ -107,9 +107,9 @@
 (fn draw-world [world camera-x camera-y screen-width screen-height]
   (love.graphics.clear 0.1 0.1 0.1)
   (draw-map world camera-x camera-y screen-width screen-height)
-  (draw-object (. world :player) camera-x camera-y)
   (each [_ slimeball (ipairs (. world :slimeballs))]
     (draw-object slimeball camera-x camera-y))
+  (draw-object (. world :player) camera-x camera-y)
   (draw-hud world screen-width screen-height))
 
 ;; Returns whether or not `tile' exists in `checked'.
@@ -264,7 +264,7 @@
 (fn move-slimeball [world slimeball dt]
   (let [collision-map (. world :collision-map)
         (goal-x goal-y) (: slimeball :next-position dt)
-        filter (fn [] "cross")
+        filter (fn [_ other] (if (. other :is-tile) "touch" "cross"))
         (x y collisions _) (: collision-map :move slimeball goal-x goal-y filter)]
     (each [_ collision (ipairs collisions)]
       (let [other (. collision :other)

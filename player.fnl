@@ -75,7 +75,7 @@
 
 (fn bounce [player x-normal y-normal]
   (tset player :x-vel (- (* 8 x-normal) (. player :x-vel)))
-  (tset player :y-vel (- (math.abs (* 8 y-normal)) (. player :y-vel))))
+  (tset player :y-vel (- (. player :y-vel) (math.abs (* 8 y-normal)))))
 
 (fn face-upwards [player]
   (tset player :action :sliming-up true))

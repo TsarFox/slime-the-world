@@ -46,9 +46,7 @@
      :width (. slimeball-sheet :width)
      :height (. slimeball-sheet :height)
 
-     :x-pos (if (= :right orientation)
-                (+ player-x player-width)
-                (- player-x player-width))
+     :x-pos player-x
      :y-pos player-y
 
      :x-vel (if (. player :action :sliming-up)

@@ -19,6 +19,8 @@
 
 ;;;; This module contains non-game-specific bits and mode-changing logic.
 
+(math.randomseed (os.time))
+
 (var scale 2)
 (local canvas-width 640)
 (local canvas-height 480)
