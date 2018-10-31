@@ -3,6 +3,8 @@
 #+EMAIL: zerodaysfordays@sdf.lonestar.org
 #+DATE:	<2018-10-19 Fri>
 
+[[./misc/screenshot.png]]
+
 This is my entry to this year's [[https://events.tymoon.eu/4][Autumn Lisp Game Jam]]. The dialect of Lisp I
 chose to use for this entry was [[https://fennel-lang.org/][Fennel]], a simple and elegant Lisp that I feel
 perfectly matches the simplicity and elegance of Lua. The theme was slime, so
