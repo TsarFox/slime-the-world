@@ -333,7 +333,7 @@
 ;; error out if either 'maps/${name}.png' or 'maps/${name}.fnl' do not exist.
 (fn new-world [name player]
   (let [tiles-path (.. "maps/" name ".png")
-        meta-path (.. "maps/" name ".fnl")
+        meta-path (.. (love.filesystem.getSource) "/maps/" name ".fnl")
         res (load-tiles (love.image.newImageData tiles-path))
         res (lume.extend res {:player player})
         res (lume.extend res {:slimeballs []})
